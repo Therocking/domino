@@ -23,12 +23,14 @@ func (h *GameHandler) AddPoint(c *gin.Context) {
 		return
 	}
 
-	if err := h.service.AddPoint(&dto); err != nil {
+	response, err := h.service.AddPoint(&dto)
+
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.Status(http.StatusCreated)
+	c.JSON(http.StatusCreated, response)
 }
 
 func (h *GameHandler) GetPointsByGameId(c *gin.Context) {

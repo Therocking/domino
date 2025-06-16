@@ -2,7 +2,7 @@ package services
 
 import (
 	"errors"
-	dto "githup/Therocking/dominoes/internal/dtos/game"
+	gameDto "githup/Therocking/dominoes/internal/dtos/game"
 	"githup/Therocking/dominoes/internal/entities"
 	"githup/Therocking/dominoes/internal/repositories"
 
@@ -10,7 +10,7 @@ import (
 )
 
 type GameService interface {
-	AddPoint(dto *dto.CreateGame) error
+	AddPoint(dto *gameDto.CreateGame) (*gameDto.GameCompletedResponse, error)
 	GetPointsByGameId(gameId string) ([]*entities.GamePoint, error)
 }
 
@@ -32,14 +32,14 @@ func NewGameService(
 	}
 }
 
-func (s *gameService) AddPoint(dto *dto.CreateGame) error {
+func (s *gameService) AddPoint(dto *gameDto.CreateGame) (*gameDto.GameCompletedResponse, error) {
 	game, err := s.gameRepo.FindByID(dto.GameId)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if game.Completed {
-		return errors.New("game already completed")
+		return nil, errors.New("game already completed")
 	}
 
 	gamePoint := &entities.GamePoint{
@@ -53,9 +53,17 @@ func (s *gameService) AddPoint(dto *dto.CreateGame) error {
 
 	createErr := s.gamePointRepo.Create(gamePoint)
 
-	s.completeGame(game, dto.TeamId)
+	if createErr != nil {
+		return nil, err
+	}
 
-	return createErr
+	response, err := s.completeGame(game, dto.TeamId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
 }
 
 func (s *gameService) GetPointsByGameId(gameId string) ([]*entities.GamePoint, error) {
@@ -68,21 +76,28 @@ func (s *gameService) GetPointsByGameId(gameId string) ([]*entities.GamePoint, e
 	return gamePoint, err
 }
 
-func (s *gameService) completeGame(game *entities.Game, teamId string) error {
+func (s *gameService) completeGame(game *entities.Game, teamId string) (*gameDto.GameCompletedResponse, error) {
 	isGreaten, err := s.isTotalPointGratenThenGamePoint(game.ID, teamId)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	if isGreaten {
-		game.Completed = true
-		if err := s.gameRepo.Update(game); err != nil {
-			return err
-		}
+	if !isGreaten {
+		return nil, nil
 	}
 
-	return nil
+	game.Completed = true
+	if err := s.gameRepo.Update(game); err != nil {
+		return nil, err
+	}
+
+	response := &gameDto.GameCompletedResponse{
+		Message:      "Game ended",
+		WinnerTeamId: teamId,
+	}
+
+	return response, nil
 }
 
 func (s *gameService) isTotalPointGratenThenGamePoint(gameId, teamId string) (bool, error) {
