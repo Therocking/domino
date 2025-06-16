@@ -1,0 +1,49 @@
+# Binarios compilados
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Binario con el mismo nombre del módulo o main package
+cmd/main
+cmd/app
+cmd/cmd
+
+# Directorios comunes de salida de compilación
+/bin/
+/build/
+/dist/
+/release/
+
+# Archivos temporales
+*.log
+*.tmp
+*.swp
+*.swo
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
+
+# Archivos de Go que no quieres compilar
+# (solo si los usas con //go:build ignore)
+# *_ignore.go
+
+# Caché de pruebas
+coverage.out
+
+.vscode/
+
+# Archivos generados por herramientas (ej. protobuf, mockgen)
+# *.pb.go
+# mock_*.go
+
+# Vendor si no deseas incluir dependencias vendorizadas
+# /vendor/
+
+
+# Entornos virtuales o herramientas externas
+.env

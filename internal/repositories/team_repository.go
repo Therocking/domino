@@ -1,0 +1,44 @@
+package repositories
+
+import (
+	"githup/Therocking/dominoes/internal/entities"
+
+	"gorm.io/gorm"
+)
+
+type TeamRepository interface {
+	Create(team *entities.Team) error
+	FindByID(id string) (*entities.Team, error)
+	FindBySessionID(sessionID string) ([]*entities.Team, error)
+	FindByGameID(gameID string) ([]*entities.Team, error)
+}
+
+type teamRepo struct {
+	db *gorm.DB
+}
+
+func NewTeamRepository(db *gorm.DB) TeamRepository {
+	return &teamRepo{db: db}
+}
+
+func (r *teamRepo) Create(team *entities.Team) error {
+	return r.db.Create(team).Error
+}
+
+func (r *teamRepo) FindByID(id string) (*entities.Team, error) {
+	var team entities.Team
+	err := r.db.First(&team, "id = ?", id).Error
+	return &team, err
+}
+
+func (r *teamRepo) FindBySessionID(sessionID string) ([]*entities.Team, error) {
+	var teams []*entities.Team
+	err := r.db.Where("session_id = ?", sessionID).Find(&teams).Error
+	return teams, err
+}
+
+func (r *teamRepo) FindByGameID(gameID string) ([]*entities.Team, error) {
+	var teams []*entities.Team
+	err := r.db.Where("game_id = ?", gameID).Find(&teams).Error
+	return teams, err
+}
