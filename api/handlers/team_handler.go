@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	teamDto "githup/Therocking/dominoes/internal/dtos/team"
 	"githup/Therocking/dominoes/internal/services"
 	"net/http"
 
@@ -49,4 +50,24 @@ func (h *TeamHandler) GetRanking(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, rankings)
+}
+
+func (h *TeamHandler) UpdateTeamName(c *gin.Context) {
+	teamId := c.Param("teamId")
+	var dto *teamDto.UpdateTeamName
+
+	if err := c.ShouldBindJSON(&dto); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	dto.Id = teamId
+
+	err := h.service.UpdateTeamName(dto)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.Status(http.StatusAccepted)
 }

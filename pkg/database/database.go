@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"gorm.io/driver/postgres" // Cambia según tu DB
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )

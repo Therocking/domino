@@ -8,6 +8,7 @@ import (
 
 type TeamRepository interface {
 	Create(team *entities.Team) error
+	Update(team *entities.Team) error
 	FindByID(id string) (*entities.Team, error)
 	FindBySessionID(sessionID string) ([]*entities.Team, error)
 	FindByGameID(gameID string) ([]*entities.Team, error)
@@ -23,6 +24,10 @@ func NewTeamRepository(db *gorm.DB) TeamRepository {
 
 func (r *teamRepo) Create(team *entities.Team) error {
 	return r.db.Create(team).Error
+}
+
+func (r *teamRepo) Update(team *entities.Team) error {
+	return r.db.Save(team).Error
 }
 
 func (r *teamRepo) FindByID(id string) (*entities.Team, error) {

@@ -49,6 +49,7 @@ func main() {
 		api.POST("/games/points", gameHandler.AddPoint)
 		api.GET("/games/points/:gameId", gameHandler.GetPointsByGameId)
 		api.GET("/team/:teamId/ranking", teamHandler.GetRanking)
+		api.PATCH("/team/:teamId", teamHandler.UpdateTeamName)
 	}
 
 	// Iniciar servidor
