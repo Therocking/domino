@@ -2,7 +2,6 @@ package services
 
 import (
 	"errors"
-	dto "githup/Therocking/dominoes/internal/dtos/game"
 	gameDto "githup/Therocking/dominoes/internal/dtos/game"
 	"githup/Therocking/dominoes/internal/entities"
 	"githup/Therocking/dominoes/internal/repositories"
@@ -12,7 +11,7 @@ import (
 
 type GameService interface {
 	AddPoint(dto *gameDto.CreateGamePoint) (*gameDto.GameCompletedResponse, error)
-	GetPointsByGameId(gameId string) ([]*dto.GamePointResponse, error)
+	GetPointsByGameId(gameId string) ([]*gameDto.GamePointResponse, error)
 }
 
 type gameService struct {
@@ -67,19 +66,19 @@ func (s *gameService) AddPoint(dto *gameDto.CreateGamePoint) (*gameDto.GameCompl
 	return response, nil
 }
 
-func (s *gameService) GetPointsByGameId(gameId string) ([]*dto.GamePointResponse, error) {
+func (s *gameService) GetPointsByGameId(gameId string) ([]*gameDto.GamePointResponse, error) {
 	gamePoints, err := s.gamePointRepo.FindByGameID(gameId)
 
 	if err != nil {
 		return nil, err
 	}
 
-	var response []*dto.GamePointResponse
+	var response []*gameDto.GamePointResponse
 
 	for i := 0; i < len(gamePoints); i++ {
 		gamePoint := gamePoints[i]
 
-		gamePointTransformed := dto.GamePointResponse{
+		gamePointTransformed := gameDto.GamePointResponse{
 			Id:     gamePoint.ID,
 			GameId: gamePoint.GameID,
 			TeamId: gamePoint.TeamID,
