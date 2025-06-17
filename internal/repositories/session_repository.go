@@ -8,7 +8,7 @@ import (
 
 type SessionRepository interface {
 	Create(session *entities.Session) error
-	FindByID(id string) (*entities.Session, error)
+	FindByDeviceID(id string) (*entities.Session, error)
 }
 
 type sessionRepo struct {
@@ -23,8 +23,8 @@ func (r *sessionRepo) Create(session *entities.Session) error {
 	return r.db.Create(session).Error
 }
 
-func (r *sessionRepo) FindByID(id string) (*entities.Session, error) {
+func (r *sessionRepo) FindByDeviceID(deviceId string) (*entities.Session, error) {
 	var session entities.Session
-	err := r.db.First(&session, "id = ?", id).Error
+	err := r.db.Preload("Teams").First(&session, "device_id = ?", deviceId).Error
 	return &session, err
 }

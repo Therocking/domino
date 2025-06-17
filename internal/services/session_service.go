@@ -1,6 +1,8 @@
 package services
 
 import (
+	sessionDto "githup/Therocking/dominoes/internal/dtos/sessions"
+	dto "githup/Therocking/dominoes/internal/dtos/team"
 	"githup/Therocking/dominoes/internal/entities"
 	"githup/Therocking/dominoes/internal/repositories"
 
@@ -8,7 +10,8 @@ import (
 )
 
 type SessionService interface {
-	CreateSession(deviceID string) (*entities.Session, error)
+	CreateSession(deviceID string) (*sessionDto.SessionCreatedResponse, error)
+	GetByDeviceId(deviceID string) (*sessionDto.SessionResponse, error)
 }
 
 type sessionService struct {
@@ -29,7 +32,7 @@ func NewSessionService(
 	}
 }
 
-func (s *sessionService) CreateSession(deviceID string) (*entities.Session, error) {
+func (s *sessionService) CreateSession(deviceID string) (*sessionDto.SessionCreatedResponse, error) {
 	session := &entities.Session{
 		Base: entities.Base{
 			ID: uuid.New().String(),
@@ -75,5 +78,33 @@ func (s *sessionService) CreateSession(deviceID string) (*entities.Session, erro
 		}
 	}
 
-	return session, nil
+	return &sessionDto.SessionCreatedResponse{
+		SessionId: session.ID,
+	}, nil
+}
+
+func (s *sessionService) GetByDeviceId(deviceID string) (*sessionDto.SessionResponse, error) {
+	session, err := s.sessionRepo.FindByDeviceID(deviceID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var teams []*dto.TeamResponse
+	for i := 0; i < len(session.Teams); i++ {
+		team := session.Teams[i]
+
+		teams = append(teams, &dto.TeamResponse{
+			Id:        team.ID,
+			SessionId: team.SessionID,
+			GameId:    team.GameID,
+		})
+	}
+
+	response := &sessionDto.SessionResponse{
+		Id:    session.ID,
+		Teams: teams,
+	}
+
+	return response, nil
 }

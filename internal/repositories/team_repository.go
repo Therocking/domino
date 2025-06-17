@@ -36,13 +36,13 @@ func (r *teamRepo) Update(team *entities.Team) error {
 
 func (r *teamRepo) FindByID(id string) (*entities.Team, error) {
 	var team entities.Team
-	err := r.db.Preload("GamePoints").Preload("Rankings").First(&team, "id = ?", id).Error
+	err := r.db.First(&team, "id = ?", id).Error
 	return &team, err
 }
 
 func (r *teamRepo) FindBySessionID(sessionID string) ([]*entities.Team, error) {
 	var teams []*entities.Team
-	err := r.db.Preload("GamePoints").Preload("Rankings").Where("session_id = ?", sessionID).Find(&teams).Error
+	err := r.db.Where("session_id = ?", sessionID).Find(&teams).Error
 	return teams, err
 }
 

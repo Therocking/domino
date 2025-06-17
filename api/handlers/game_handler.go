@@ -39,6 +39,7 @@ func (h *GameHandler) GetPointsByGameId(c *gin.Context) {
 	gamePoint, err := h.service.GetPointsByGameId(gameId)
 
 	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 

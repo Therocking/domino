@@ -41,15 +41,25 @@ func main() {
 	// Configurar router
 	router := gin.Default()
 
-	api := router.Group("/api/v1")
+	sessionGroup := router.Group("/api/v1/sessions")
 	{
-		api.POST("/sessions", sessionHandler.CreateSession)
-		api.GET("/sessions/:sessionId/teams", teamHandler.GetTeamsBySession)
-		api.GET("/games/:gameId/teams", teamHandler.GetTeamsByGame)
-		api.POST("/games/points", gameHandler.AddPoint)
-		api.GET("/games/:gameId/points", gameHandler.GetPointsByGameId)
-		api.GET("/team/:teamId/ranking", teamHandler.GetRanking)
-		api.PATCH("/team/:teamId", teamHandler.UpdateTeamName)
+		sessionGroup.POST("/", sessionHandler.CreateSession)
+		sessionGroup.GET("/device/:deviceId", sessionHandler.GetByDeviceId)
+		sessionGroup.GET("/:sessionId/teams", teamHandler.GetTeamsBySession)
+	}
+
+	gameGroup := router.Group("/api/v1/games")
+	{
+		gameGroup.GET("/:gameId/teams", teamHandler.GetTeamsByGame)
+		gameGroup.POST("/points", gameHandler.AddPoint)
+		gameGroup.GET("/:gameId/points", gameHandler.GetPointsByGameId)
+	}
+
+	teamGroup := router.Group("/api/v1/team")
+	{
+
+		teamGroup.GET("/:teamId/ranking", teamHandler.GetRanking)
+		teamGroup.PATCH("/:teamId", teamHandler.UpdateTeamName)
 	}
 
 	// Iniciar servidor

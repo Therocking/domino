@@ -34,3 +34,17 @@ func (h *SessionHandler) CreateSession(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, session)
 }
+
+func (h *SessionHandler) GetByDeviceId(c *gin.Context) {
+	var deviceId = c.Param("deviceId")
+
+	response, err := h.service.GetByDeviceId(deviceId)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"errror": err.Error()})
+
+		return
+	}
+
+	c.JSON(http.StatusOK, response)
+}
