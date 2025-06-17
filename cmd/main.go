@@ -47,7 +47,7 @@ func main() {
 		api.GET("/sessions/:sessionId/teams", teamHandler.GetTeamsBySession)
 		api.GET("/games/:gameId/teams", teamHandler.GetTeamsByGame)
 		api.POST("/games/points", gameHandler.AddPoint)
-		api.GET("/games/points/:gameId", gameHandler.GetPointsByGameId)
+		api.GET("/games/:gameId/points", gameHandler.GetPointsByGameId)
 		api.GET("/team/:teamId/ranking", teamHandler.GetRanking)
 		api.PATCH("/team/:teamId", teamHandler.UpdateTeamName)
 	}

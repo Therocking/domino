@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"githup/Therocking/dominoes/internal/entities"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -25,6 +26,9 @@ func (r *gameRepo) Create(game *entities.Game) error {
 }
 
 func (r *gameRepo) Update(game *entities.Game) error {
+	now := time.Now()
+
+	game.UpdatedAt = &now
 	return r.db.Save(game).Error
 }
 

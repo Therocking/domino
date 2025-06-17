@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	rankingDto "githup/Therocking/dominoes/internal/dtos/ranking"
 	teamDto "githup/Therocking/dominoes/internal/dtos/team"
 	"githup/Therocking/dominoes/internal/entities"
 	"githup/Therocking/dominoes/internal/repositories"
@@ -9,9 +10,9 @@ import (
 
 type TeamService interface {
 	UpdateTeamName(team *teamDto.UpdateTeamName) error
-	GetTeamsBySession(sessionID string) ([]*entities.Team, error)
-	GetTeamsByGame(gameID string) ([]*entities.Team, error)
-	GetRanking(id string) ([]*entities.Ranking, error)
+	GetTeamsBySession(sessionID string) ([]*teamDto.TeamResponse, error)
+	GetTeamsByGame(gameID string) ([]*teamDto.TeamResponse, error)
+	GetRanking(id string) ([]*rankingDto.RankingResponse, error)
 }
 
 type teamService struct {
@@ -44,14 +45,78 @@ func (s *teamService) UpdateTeamName(dto *teamDto.UpdateTeamName) error {
 	return nil
 }
 
-func (s *teamService) GetTeamsBySession(sessionID string) ([]*entities.Team, error) {
-	return s.repo.FindBySessionID(sessionID)
+func (s *teamService) GetTeamsBySession(sessionID string) ([]*teamDto.TeamResponse, error) {
+	teams, err := s.repo.FindBySessionID(sessionID)
+
+	var response []*teamDto.TeamResponse
+
+	if err != nil {
+		return response, err
+	}
+
+	for i := 0; i < len(teams); i++ {
+		team := teams[i]
+
+		teamTransformed := s.transformResponse(team)
+
+		response = append(response, teamTransformed)
+	}
+
+	return response, nil
 }
 
-func (s *teamService) GetTeamsByGame(gameID string) ([]*entities.Team, error) {
-	return s.repo.FindByGameID(gameID)
+func (s *teamService) GetTeamsByGame(gameID string) ([]*teamDto.TeamResponse, error) {
+	teams, err := s.repo.FindByGameID(gameID)
+
+	var response []*teamDto.TeamResponse
+
+	if err != nil {
+		return response, err
+	}
+
+	for i := 0; i < len(teams); i++ {
+		team := teams[i]
+
+		teamTransformed := s.transformResponse(team)
+
+		response = append(response, teamTransformed)
+	}
+
+	return response, nil
 }
 
-func (s *teamService) GetRanking(id string) ([]*entities.Ranking, error) {
-	return s.rankingRepo.FindAllByTeam(id)
+func (s *teamService) GetRanking(id string) ([]*rankingDto.RankingResponse, error) {
+	rankings, err := s.rankingRepo.FindAllByTeam(id)
+
+	var response []*rankingDto.RankingResponse
+
+	if err != nil {
+		return response, err
+	}
+
+	for i := 0; i < len(rankings); i++ {
+		ranking := rankings[i]
+
+		rankingTransformed := &rankingDto.RankingResponse{
+			Id:          ranking.ID,
+			GameId:      ranking.GameID,
+			TeamId:      ranking.TeamID,
+			TotalGames:  ranking.TotalGames,
+			TotalWins:   ranking.TotalWins,
+			TotalLosses: ranking.TotalLosses,
+			WinRate:     ranking.WinRate,
+		}
+
+		response = append(response, rankingTransformed)
+	}
+
+	return response, nil
+}
+
+func (s *teamService) transformResponse(team *entities.Team) *teamDto.TeamResponse {
+	return &teamDto.TeamResponse{
+		Id:        team.ID,
+		SessionId: team.SessionID,
+		GameId:    team.GameID,
+	}
 }

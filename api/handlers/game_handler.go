@@ -17,7 +17,7 @@ func NewGameHandler(service services.GameService) *GameHandler {
 }
 
 func (h *GameHandler) AddPoint(c *gin.Context) {
-	var dto dto.CreateGame
+	var dto dto.CreateGamePoint
 	if err := c.ShouldBindJSON(&dto); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
