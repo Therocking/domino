@@ -21,25 +21,23 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Inicializar repositorios
 	sessionRepo := repositories.NewSessionRepository(db)
 	teamRepo := repositories.NewTeamRepository(db)
 	gameRepo := repositories.NewGameRepository(db)
 	gamePointRepo := repositories.NewGamePointRepository(db)
 	rankingRepo := repositories.NewRankingRepository(db)
 
-	// Inicializar servicios
 	sessionService := services.NewSessionService(sessionRepo, gameRepo, teamRepo)
 	gameService := services.NewGameService(gameRepo, gamePointRepo, rankingRepo)
 	teamService := services.NewTeamService(teamRepo, rankingRepo)
 
-	// Inicializar handlers
 	sessionHandler := handlers.NewSessionHandler(sessionService)
 	gameHandler := handlers.NewGameHandler(gameService)
 	teamHandler := handlers.NewTeamHandler(teamService)
 
-	// Configurar router
 	router := gin.Default()
+
+	router.Use(CORSMiddleware())
 
 	sessionGroup := router.Group("/api/v1/sessions")
 	{
@@ -62,8 +60,24 @@ func main() {
 		teamGroup.PATCH("/:teamId", teamHandler.UpdateTeamName)
 	}
 
-	// Iniciar servidor
 	if err := router.Run(":8080"); err != nil {
 		log.Fatal(err)
+	}
+}
+
+func CORSMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Content-Type", "application/json")
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Max-Age", "86400")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, X-Max")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(200)
+		} else {
+			c.Next()
+		}
 	}
 }
