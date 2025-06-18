@@ -2,10 +2,11 @@ package database
 
 import (
 	"fmt"
-	"githup/Therocking/dominoes/internal/entities"
 	"log"
 	"os"
 	"time"
+
+	"githup/Therocking/dominoes/internal/entities"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -32,7 +33,6 @@ func NewConfig() *Config {
 	}
 }
 
-// Connect establece la conexión con la base de datos
 func Connect() (*gorm.DB, error) {
 	config := NewConfig()
 
@@ -41,21 +41,17 @@ func Connect() (*gorm.DB, error) {
 		config.Host, config.Port, config.User, config.Password, config.DBName, config.SSLMode,
 	)
 
-	// Configurar logger para GORM
 	newLogger := logger.New(
-		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+		log.New(os.Stdout, "\r\n", log.LstdFlags),
 		logger.Config{
-			SlowThreshold:             time.Second, // Umbral para queries lentos
-			LogLevel:                  logger.Info, // Nivel de log
-			IgnoreRecordNotFoundError: true,        // Ignorar errores de "record not found"
-			Colorful:                  true,        // Habilitar colores
+			SlowThreshold:             time.Second,
+			LogLevel:                  logger.Info,
+			IgnoreRecordNotFoundError: true,
+			Colorful:                  true,
 		},
 	)
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
-		Logger: newLogger,
-	})
-
+	db, err := connectWithRetry(dsn, 10, newLogger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
@@ -71,24 +67,46 @@ func Connect() (*gorm.DB, error) {
 		return nil, fmt.Errorf("failed to migrate database: %w", err)
 	}
 
-	// Configurar conexión pool
 	sqlDB, err := db.DB()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get database instance: %w", err)
 	}
 
-	// Configuración del pool de conexiones
-	sqlDB.SetMaxIdleConns(10)           // Conexiones inactivas máximas
-	sqlDB.SetMaxOpenConns(100)          // Conexiones abiertas máximas
-	sqlDB.SetConnMaxLifetime(time.Hour) // Tiempo máximo de vida de una conexión
+	sqlDB.SetMaxIdleConns(10)
+	sqlDB.SetMaxOpenConns(100)
+	sqlDB.SetConnMaxLifetime(time.Hour)
 
-	log.Println("Successfully connected to database!")
+	log.Println("✅ Successfully connected to database!")
 	return db, nil
 }
 
-// getEnv obtiene una variable de entorno o devuelve un valor por defecto
 func getEnv(key string) string {
-	value := os.Getenv(key)
+	return os.Getenv(key)
+}
 
-	return value
+func connectWithRetry(dsn string, maxRetries int, newLogger logger.Interface) (*gorm.DB, error) {
+	var db *gorm.DB
+	var err error
+
+	for i := 0; i < maxRetries; i++ {
+		log.Printf("🔄 Intentando conexión a la base de datos (%d/%d)...", i+1, maxRetries)
+		db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
+			Logger: newLogger,
+		})
+		if err == nil {
+			// Verificamos que realmente responde al ping
+			sqlDB, err := db.DB()
+			if err == nil {
+				err = sqlDB.Ping()
+				if err == nil {
+					return db, nil
+				}
+			}
+		}
+
+		log.Printf("❌ Fallo en conexión: %v", err)
+		time.Sleep(3 * time.Second)
+	}
+
+	return nil, fmt.Errorf("❌ agotados los reintentos para conectar a la base de datos: %w", err)
 }

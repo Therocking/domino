@@ -7,6 +7,9 @@
 *.test
 *.out
 
+# database volumes
+domino_data
+
 # Binario con el mismo nombre del módulo o main package
 cmd/main
 cmd/app
