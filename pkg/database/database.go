@@ -13,6 +13,8 @@ import (
 	"gorm.io/gorm/logger"
 )
 
+var DB *gorm.DB
+
 type Config struct {
 	Host     string
 	Port     string
@@ -33,7 +35,7 @@ func NewConfig() *Config {
 	}
 }
 
-func Connect() (*gorm.DB, error) {
+func Connect() error {
 	config := NewConfig()
 
 	dsn := fmt.Sprintf(
@@ -51,12 +53,14 @@ func Connect() (*gorm.DB, error) {
 		},
 	)
 
-	db, err := connectWithRetry(dsn, 10, newLogger)
+	var err error
+
+	DB, err = connectWithRetry(dsn, 10, newLogger)
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to database: %w", err)
+		return fmt.Errorf("failed to connect to database: %w", err)
 	}
 
-	err = db.AutoMigrate(
+	err = DB.AutoMigrate(
 		&entities.Session{},
 		&entities.Team{},
 		&entities.Game{},
@@ -64,12 +68,12 @@ func Connect() (*gorm.DB, error) {
 		&entities.Ranking{},
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to migrate database: %w", err)
+		return fmt.Errorf("failed to migrate database: %w", err)
 	}
 
-	sqlDB, err := db.DB()
+	sqlDB, err := DB.DB()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get database instance: %w", err)
+		return fmt.Errorf("failed to get database instance: %w", err)
 	}
 
 	sqlDB.SetMaxIdleConns(10)
@@ -77,7 +81,8 @@ func Connect() (*gorm.DB, error) {
 	sqlDB.SetConnMaxLifetime(time.Hour)
 
 	log.Println("✅ Successfully connected to database!")
-	return db, nil
+
+	return nil
 }
 
 func getEnv(key string) string {

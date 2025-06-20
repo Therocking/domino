@@ -1,11 +1,11 @@
 package handlers
 
 import (
+	"encoding/json"
 	teamDto "githup/Therocking/dominoes/internal/dtos/team"
 	"githup/Therocking/dominoes/internal/services"
+	"githup/Therocking/dominoes/pkg"
 	"net/http"
-
-	"github.com/gin-gonic/gin"
 )
 
 type TeamHandler struct {
@@ -16,48 +16,48 @@ func NewTeamHandler(service services.TeamService) *TeamHandler {
 	return &TeamHandler{service: service}
 }
 
-func (h *TeamHandler) GetTeamsBySession(c *gin.Context) {
-	sessionID := c.Param("sessionId")
+func (h *TeamHandler) GetTeamsBySession(response http.ResponseWriter, request *http.Request) {
+	sessionID := request.PathValue("id")
 
 	teams, err := h.service.GetTeamsBySession(sessionID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		pkg.WriteError(response, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, teams)
+	pkg.WriteJSON(response, http.StatusOK, teams)
 }
 
-func (h *TeamHandler) GetTeamsByGame(c *gin.Context) {
-	gameID := c.Param("gameId")
+func (h *TeamHandler) GetTeamsByGame(response http.ResponseWriter, request *http.Request) {
+	gameID := request.PathValue("gameId")
 
 	teams, err := h.service.GetTeamsByGame(gameID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		pkg.WriteError(response, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, teams)
+	pkg.WriteJSON(response, http.StatusOK, teams)
 }
 
-func (h *TeamHandler) GetRanking(c *gin.Context) {
-	rankingId := c.Param("teamId")
+func (h *TeamHandler) GetRanking(response http.ResponseWriter, request *http.Request) {
+	rankingId := request.PathValue("id")
 
 	rankings, err := h.service.GetRanking(rankingId)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		pkg.WriteError(response, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, rankings)
+	pkg.WriteJSON(response, http.StatusOK, rankings)
 }
 
-func (h *TeamHandler) UpdateTeamName(c *gin.Context) {
-	teamId := c.Param("teamId")
+func (h *TeamHandler) UpdateTeamName(resonse http.ResponseWriter, request *http.Request) {
+	teamId := request.PathValue("id")
 	var dto *teamDto.UpdateTeamName
 
-	if err := c.ShouldBindJSON(&dto); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if err := json.NewDecoder(request.Body).Decode(&dto); err != nil {
+		pkg.WriteError(resonse, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -65,9 +65,9 @@ func (h *TeamHandler) UpdateTeamName(c *gin.Context) {
 
 	err := h.service.UpdateTeamName(dto)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		pkg.WriteError(resonse, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	c.Status(http.StatusAccepted)
+	pkg.WriteJSON(resonse, http.StatusAccepted, nil)
 }

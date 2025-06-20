@@ -1,11 +1,11 @@
 package handlers
 
 import (
+	"encoding/json"
 	dto "githup/Therocking/dominoes/internal/dtos/game"
 	"githup/Therocking/dominoes/internal/services"
+	"githup/Therocking/dominoes/pkg"
 	"net/http"
-
-	"github.com/gin-gonic/gin"
 )
 
 type GameHandler struct {
@@ -16,32 +16,33 @@ func NewGameHandler(service services.GameService) *GameHandler {
 	return &GameHandler{service: service}
 }
 
-func (h *GameHandler) AddPoint(c *gin.Context) {
+func (h *GameHandler) AddPoint(response http.ResponseWriter, request *http.Request) {
 	var dto dto.CreateGamePoint
-	if err := c.ShouldBindJSON(&dto); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+
+	if err := json.NewDecoder(request.Body).Decode(&dto); err != nil {
+		pkg.WriteError(response, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	response, err := h.service.AddPoint(&dto)
+	pointResponse, err := h.service.AddPoint(&dto)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		pkg.WriteError(response, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusCreated, response)
+	pkg.WriteJSON(response, http.StatusOK, pointResponse)
 }
 
-func (h *GameHandler) GetPointsByGameId(c *gin.Context) {
-	gameId := c.Param("gameId")
+func (h *GameHandler) GetPointsByGameId(response http.ResponseWriter, request *http.Request) {
+	gameId := request.PathValue("id")
 
 	gamePoint, err := h.service.GetPointsByGameId(gameId)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		pkg.WriteError(response, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, gamePoint)
+	pkg.WriteJSON(response, http.StatusOK, gamePoint)
 }

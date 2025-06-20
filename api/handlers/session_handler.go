@@ -2,10 +2,10 @@
 package handlers
 
 import (
+	"encoding/json"
 	"githup/Therocking/dominoes/internal/services"
+	"githup/Therocking/dominoes/pkg"
 	"net/http"
-
-	"github.com/gin-gonic/gin"
 )
 
 type SessionHandler struct {
@@ -16,35 +16,34 @@ func NewSessionHandler(service services.SessionService) *SessionHandler {
 	return &SessionHandler{service: service}
 }
 
-func (h *SessionHandler) CreateSession(c *gin.Context) {
-	var request struct {
+func (h *SessionHandler) CreateSession(response http.ResponseWriter, request *http.Request) {
+	var dto struct {
 		DeviceID string `json:"deviceId"`
 	}
 
-	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if err := json.NewDecoder(request.Body).Decode(&dto); err != nil {
+		pkg.WriteError(response, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	session, err := h.service.CreateSession(request.DeviceID)
+	session, err := h.service.CreateSession(dto.DeviceID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		pkg.WriteError(response, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusCreated, session)
+	pkg.WriteJSON(response, http.StatusCreated, session)
 }
 
-func (h *SessionHandler) GetByDeviceId(c *gin.Context) {
-	var deviceId = c.Param("deviceId")
+func (h *SessionHandler) GetByDeviceId(response http.ResponseWriter, request *http.Request) {
+	var deviceId = request.PathValue("deviceId")
 
-	response, err := h.service.GetByDeviceId(deviceId)
+	session, err := h.service.GetByDeviceId(deviceId)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"errror": err.Error()})
-
+		pkg.WriteError(response, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, response)
+	pkg.WriteJSON(response, http.StatusOK, session)
 }
