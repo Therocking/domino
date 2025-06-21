@@ -9,10 +9,10 @@ import (
 )
 
 type SessionHandler struct {
-	service services.SessionService
+	service services.ISessionService
 }
 
-func NewSessionHandler(service services.SessionService) *SessionHandler {
+func NewSessionHandler(service services.ISessionService) *SessionHandler {
 	return &SessionHandler{service: service}
 }
 

@@ -1,10 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"githup/Therocking/dominoes/api"
 	"githup/Therocking/dominoes/pkg/database"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/joho/godotenv"
 )
@@ -18,6 +20,8 @@ func main() {
 		log.Fatal(err)
 	}
 
+	port := os.Getenv("PORT")
+
 	router := http.NewServeMux()
 	routerRegister := &api.RouterRegister{}
 
@@ -29,9 +33,11 @@ func main() {
 	apiRouter.Handle("/api/v1/", http.StripPrefix("/api/v1", router))
 
 	server := http.Server{
-		Addr:    ":8080",
+		Addr:    fmt.Sprintf(":%s", port),
 		Handler: apiRouter,
 	}
+
+	log.Printf("Server running on port: %s", port)
 
 	server.ListenAndServe()
 }

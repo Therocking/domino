@@ -9,10 +9,10 @@ import (
 )
 
 type TeamHandler struct {
-	service services.TeamService
+	service services.ITeamService
 }
 
-func NewTeamHandler(service services.TeamService) *TeamHandler {
+func NewTeamHandler(service services.ITeamService) *TeamHandler {
 	return &TeamHandler{service: service}
 }
 

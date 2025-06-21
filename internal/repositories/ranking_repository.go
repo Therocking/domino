@@ -6,31 +6,31 @@ import (
 	"gorm.io/gorm"
 )
 
-type RankingRepository interface {
+type IRankingRepository interface {
 	Upsert(ranking *entities.Ranking) error
 	FindAllByTeam(teamID string) ([]*entities.Ranking, error)
 	FindByTeam(teamID string) (*entities.Ranking, error)
 }
 
-type rankingRepo struct {
+type RankingRepository struct {
 	db *gorm.DB
 }
 
-func NewRankingRepository(db *gorm.DB) RankingRepository {
-	return &rankingRepo{db: db}
+func NewRankingRepository(db *gorm.DB) IRankingRepository {
+	return &RankingRepository{db: db}
 }
 
-func (r *rankingRepo) Upsert(ranking *entities.Ranking) error {
+func (r *RankingRepository) Upsert(ranking *entities.Ranking) error {
 	return r.db.Save(ranking).Error
 }
 
-func (r *rankingRepo) FindAllByTeam(teamID string) ([]*entities.Ranking, error) {
+func (r *RankingRepository) FindAllByTeam(teamID string) ([]*entities.Ranking, error) {
 	var rankings []*entities.Ranking
 	err := r.db.Where("team_id = ?", teamID).Find(&rankings).Error
 	return rankings, err
 }
 
-func (r *rankingRepo) FindByTeam(teamId string) (*entities.Ranking, error) {
+func (r *RankingRepository) FindByTeam(teamId string) (*entities.Ranking, error) {
 	var ranking entities.Ranking
 	err := r.db.Find(&ranking, "team_id = ?", teamId).Error
 	return &ranking, err

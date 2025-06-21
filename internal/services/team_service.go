@@ -8,23 +8,23 @@ import (
 	"githup/Therocking/dominoes/internal/repositories"
 )
 
-type TeamService interface {
+type ITeamService interface {
 	UpdateTeamName(team *teamDto.UpdateTeamName) error
 	GetTeamsBySession(sessionID string) ([]*teamDto.TeamResponse, error)
 	GetTeamsByGame(gameID string) ([]*teamDto.TeamResponse, error)
 	GetRanking(id string) ([]*rankingDto.RankingResponse, error)
 }
 
-type teamService struct {
-	repo        repositories.TeamRepository
-	rankingRepo repositories.RankingRepository
+type TeamService struct {
+	repo        repositories.ITeamRepository
+	rankingRepo repositories.IRankingRepository
 }
 
-func NewTeamService(repo repositories.TeamRepository, rankingRepo repositories.RankingRepository) TeamService {
-	return &teamService{repo: repo, rankingRepo: rankingRepo}
+func NewTeamService(repo repositories.ITeamRepository, rankingRepo repositories.IRankingRepository) ITeamService {
+	return &TeamService{repo: repo, rankingRepo: rankingRepo}
 }
 
-func (s *teamService) UpdateTeamName(dto *teamDto.UpdateTeamName) error {
+func (s *TeamService) UpdateTeamName(dto *teamDto.UpdateTeamName) error {
 	if dto.Name == "" {
 		return errors.New("team name cannot be empty")
 	}
@@ -45,7 +45,7 @@ func (s *teamService) UpdateTeamName(dto *teamDto.UpdateTeamName) error {
 	return nil
 }
 
-func (s *teamService) GetTeamsBySession(sessionID string) ([]*teamDto.TeamResponse, error) {
+func (s *TeamService) GetTeamsBySession(sessionID string) ([]*teamDto.TeamResponse, error) {
 	teams, err := s.repo.FindBySessionID(sessionID)
 
 	var response []*teamDto.TeamResponse
@@ -65,7 +65,7 @@ func (s *teamService) GetTeamsBySession(sessionID string) ([]*teamDto.TeamRespon
 	return response, nil
 }
 
-func (s *teamService) GetTeamsByGame(gameID string) ([]*teamDto.TeamResponse, error) {
+func (s *TeamService) GetTeamsByGame(gameID string) ([]*teamDto.TeamResponse, error) {
 	teams, err := s.repo.FindByGameID(gameID)
 
 	var response []*teamDto.TeamResponse
@@ -85,7 +85,7 @@ func (s *teamService) GetTeamsByGame(gameID string) ([]*teamDto.TeamResponse, er
 	return response, nil
 }
 
-func (s *teamService) GetRanking(id string) ([]*rankingDto.RankingResponse, error) {
+func (s *TeamService) GetRanking(id string) ([]*rankingDto.RankingResponse, error) {
 	rankings, err := s.rankingRepo.FindAllByTeam(id)
 
 	var response []*rankingDto.RankingResponse
@@ -113,7 +113,7 @@ func (s *teamService) GetRanking(id string) ([]*rankingDto.RankingResponse, erro
 	return response, nil
 }
 
-func (s *teamService) transformResponse(team *entities.Team) *teamDto.TeamResponse {
+func (s *TeamService) transformResponse(team *entities.Team) *teamDto.TeamResponse {
 	return &teamDto.TeamResponse{
 		Id:        team.ID,
 		SessionId: team.SessionID,
