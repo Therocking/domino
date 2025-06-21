@@ -1,0 +1,376 @@
+openapi: 3.0.4
+info:
+  title: Domino
+  description: |
+    API para contar puntos en juego de domino
+  # termsOfService: https://swagger.io/terms/
+  contact:
+    email: jgenao588@gmail.com
+  # license:
+  #   name: Apache 2.0
+  #   url: https://www.apache.org/licenses/LICENSE-2.0.html
+  version: 0.0.1
+# externalDocs:
+#   description: Find out more about Swagger
+#   url: https://swagger.io
+servers:
+  - url: http://localhost:8080/api/v1
+tags:
+  - name: Sessions
+    description: Everything about sessions
+  - name: Team
+    description: Everything about teams
+  - name: Games
+    description: Everithing about games
+    # externalDocs:
+    #   description: Find out more
+    #   url: https://swagger.io
+paths:
+  /sessions:
+    post:
+      tags:
+        - Sessions
+      summary: Create new session sending.
+      description: Create a new session to your device seding a device id.
+      operationId: createSession
+      requestBody:
+        description: Create your new session
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSession'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionCreated'
+        '400':
+          description: Invalid ID supplied
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /sessions/{sessionId}/teams:
+    get:
+      tags: 
+        - Sessions
+      summary: Get all teams in session
+      operationId: Get teams
+      parameters:
+        - name: sessionId
+          in: path
+          description: ID of session
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema: 
+                type: array
+                items:
+                  oneOf:
+                    - $ref: '#/components/schemas/TeamResponse'
+                    - $ref: '#/components/schemas/TeamResponse'
+        '400':
+          description: Invalid operation
+        '500':
+          description: Server error
+  /sessions/device/{deviceId}:
+    get:
+      tags:
+        - Sessions
+      summary: Get session by device id
+      operationId: GetSessionByDeviceId
+      parameters:
+        - name: deviceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/SessionResponse'
+        '400':
+          description: Invalid operation
+        '500':
+          description: Server error
+  /games/points:
+    post:
+      tags:
+        - Games
+      summary: Add points to a team
+      operationId: AddTeamPoints
+      requestBody:
+        description: Body with info to add points
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateGamePoint'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+        '400':
+          description: Invalid operation
+        '500':
+          description: Server error
+  /games/{gameId}/points:
+    get:
+      tags:
+        - Games
+      summary: Get a list of team points in a game
+      operationId: GetPoints
+      parameters:
+        - name: gameId
+          in: path
+          description: ID of game
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema: 
+                type: array
+                items:
+                  oneOf:
+                    - $ref: '#/components/schemas/GamePointReponse'
+                    - $ref: '#/components/schemas/GamePointReponse'
+        '400':
+          description: Invalid operation
+        '500':
+          description: Server error
+  /team/{teamId}:
+    patch:
+      tags:
+        - Team
+      summary: Update team name
+      description: Update team name by id
+      operationId: UpdateTeamName
+      parameters:
+        - name: teamId
+          in: path
+          description: ID of team
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Body to send new team name
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTeamName'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+        '400':
+          description: Invalid value
+        '500':
+          description: Server error
+  /team/{teamId}/ranking:
+    get:
+      tags:
+        - Team
+      summary: Get team ranking
+      parameters:
+        - name: teamId
+          in: path
+          description: ID of team
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RankingResponse'
+        '400':
+          description: Invalid operation
+        '500':
+          description: Server error
+components:
+  schemas:
+    CreateSession:
+      required:
+        - deviceId
+      type: object
+      properties:
+        # id:
+        #   type: integer
+        #   format: int64
+        #   example: 10
+        deviceId:
+          type: string
+          example: uuid
+        # category:
+        #   $ref: '#/components/schemas/Category'
+        # photoUrls:
+        #   type: array
+        #   xml:
+        #     wrapped: true
+        #   items:
+        #     type: string
+        #     xml:
+        #       name: photoUrl
+        # tags:
+        #   type: array
+        #   xml:
+        #     wrapped: true
+          # items:
+          #   $ref: '#/components/schemas/Tag'
+        # status:
+        #   type: string
+        #   description: pet status in the store
+        #   enum:
+        #     - available
+        #     - pending
+        #     - sold
+      xml:
+        name: createSession
+    CreateGamePoint:
+      required:
+        - point
+        - gameId
+        - teamId
+      type: object
+      properties:
+        point:
+          type: integer
+          format: int
+        gameId:
+          type: string
+          format: uuid
+        teamId:
+          type: string
+          format: uuid
+      xml:
+        name: createGamePoint
+    UpdateTeamName:
+      required:
+        - name
+      type: object
+      properties:
+        name: 
+          type: string
+      xml:
+        name: updateTeamName
+    SessionCreated:
+      type: object
+      properties:
+        sessionId: 
+          type: string
+          example: sessionId
+      xml:
+        name: sessionCreated
+    TeamResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        sessionId:
+          type: string
+          format: uuid
+        gameId:
+          type: string
+          format: uuid
+      xml:
+        name: teamResponse
+    GamePointReponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        point:
+          type: integer
+          format: int
+        gameId:
+          type: string
+          format: uuid
+        teamId:
+          type: string
+          format: uuid
+      xml:
+        name: gamePointReponse
+    RankingResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        gameId:
+          type: string
+          format: uuid
+        teamId:
+          type: string
+          format: uuid
+        totalGames:
+          type: integer
+          format: int
+        totalWins:
+          type: integer
+          format: int
+        totalLose:
+          type: integer
+          format: int
+        winRate:
+          type: integer
+          format: float64
+      xml:
+        name: rankingResponse
+    SessionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        teams:
+          type: array
+          items:
+            $ref: '#/components/schemas/TeamResponse'
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+      required:
+        - code
+        - message
+  requestBodies:
+    Session:
+      description: Pet object that needs to be added to the store
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CreateSession'
+    UserArray:
+      description: List of user object
+      content:
+        application/json:
+          schema:
+            type: array
+            # items:
+            #   $ref: '#/components/schemas/User'

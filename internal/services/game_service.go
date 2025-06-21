@@ -9,30 +9,30 @@ import (
 	"github.com/google/uuid"
 )
 
-type GameService interface {
+type IGameService interface {
 	AddPoint(dto *gameDto.CreateGamePoint) (*gameDto.GameCompletedResponse, error)
 	GetPointsByGameId(gameId string) ([]*gameDto.GamePointResponse, error)
 }
 
-type gameService struct {
-	gameRepo      repositories.GameRepository
-	gamePointRepo repositories.GamePointRepository
-	rankingRepo   repositories.RankingRepository
+type GameService struct {
+	gameRepo      repositories.IGameRepository
+	gamePointRepo repositories.IGamePointRepository
+	rankingRepo   repositories.IRankingRepository
 }
 
 func NewGameService(
-	gameRepo repositories.GameRepository,
-	gamePointRepo repositories.GamePointRepository,
-	rankingRepo repositories.RankingRepository,
-) GameService {
-	return &gameService{
+	gameRepo repositories.IGameRepository,
+	gamePointRepo repositories.IGamePointRepository,
+	rankingRepo repositories.IRankingRepository,
+) IGameService {
+	return &GameService{
 		gameRepo:      gameRepo,
 		gamePointRepo: gamePointRepo,
 		rankingRepo:   rankingRepo,
 	}
 }
 
-func (s *gameService) AddPoint(dto *gameDto.CreateGamePoint) (*gameDto.GameCompletedResponse, error) {
+func (s *GameService) AddPoint(dto *gameDto.CreateGamePoint) (*gameDto.GameCompletedResponse, error) {
 	game, err := s.gameRepo.FindByID(dto.GameId)
 	if err != nil {
 		return nil, err
@@ -66,7 +66,7 @@ func (s *gameService) AddPoint(dto *gameDto.CreateGamePoint) (*gameDto.GameCompl
 	return response, nil
 }
 
-func (s *gameService) GetPointsByGameId(gameId string) ([]*gameDto.GamePointResponse, error) {
+func (s *GameService) GetPointsByGameId(gameId string) ([]*gameDto.GamePointResponse, error) {
 	gamePoints, err := s.gamePointRepo.FindByGameID(gameId)
 
 	if err != nil {
@@ -90,7 +90,7 @@ func (s *gameService) GetPointsByGameId(gameId string) ([]*gameDto.GamePointResp
 	return response, nil
 }
 
-func (s *gameService) completeGame(game *entities.Game, teamId string) (*gameDto.GameCompletedResponse, error) {
+func (s *GameService) completeGame(game *entities.Game, teamId string) (*gameDto.GameCompletedResponse, error) {
 	isGreaten, err := s.isTotalPointGratenThenGamePoint(game.ID, teamId)
 
 	if err != nil {
@@ -114,7 +114,7 @@ func (s *gameService) completeGame(game *entities.Game, teamId string) (*gameDto
 	return response, nil
 }
 
-func (s *gameService) isTotalPointGratenThenGamePoint(gameId, teamId string) (bool, error) {
+func (s *GameService) isTotalPointGratenThenGamePoint(gameId, teamId string) (bool, error) {
 	points, err := s.gamePointRepo.FindAllByGameAndTeamId(gameId, teamId)
 
 	if err != nil {

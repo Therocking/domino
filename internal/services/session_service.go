@@ -9,30 +9,30 @@ import (
 	"github.com/google/uuid"
 )
 
-type SessionService interface {
+type ISessionService interface {
 	CreateSession(deviceID string) (*sessionDto.SessionCreatedResponse, error)
 	GetByDeviceId(deviceID string) (*sessionDto.SessionResponse, error)
 }
 
-type sessionService struct {
-	sessionRepo repositories.SessionRepository
-	gameRepo    repositories.GameRepository
-	teamRepo    repositories.TeamRepository
+type SessionService struct {
+	sessionRepo repositories.ISessionRepository
+	gameRepo    repositories.IGameRepository
+	teamRepo    repositories.ITeamRepository
 }
 
 func NewSessionService(
-	sessionRepo repositories.SessionRepository,
-	gameRepo repositories.GameRepository,
-	teamRepo repositories.TeamRepository,
-) SessionService {
-	return &sessionService{
+	sessionRepo repositories.ISessionRepository,
+	gameRepo repositories.IGameRepository,
+	teamRepo repositories.ITeamRepository,
+) ISessionService {
+	return &SessionService{
 		sessionRepo: sessionRepo,
 		gameRepo:    gameRepo,
 		teamRepo:    teamRepo,
 	}
 }
 
-func (s *sessionService) CreateSession(deviceID string) (*sessionDto.SessionCreatedResponse, error) {
+func (s *SessionService) CreateSession(deviceID string) (*sessionDto.SessionCreatedResponse, error) {
 	session := &entities.Session{
 		Base: entities.Base{
 			ID: uuid.New().String(),
@@ -83,7 +83,7 @@ func (s *sessionService) CreateSession(deviceID string) (*sessionDto.SessionCrea
 	}, nil
 }
 
-func (s *sessionService) GetByDeviceId(deviceID string) (*sessionDto.SessionResponse, error) {
+func (s *SessionService) GetByDeviceId(deviceID string) (*sessionDto.SessionResponse, error) {
 	session, err := s.sessionRepo.FindByDeviceID(deviceID)
 
 	if err != nil {
