@@ -93,20 +93,25 @@ func connectWithRetry(dsn string, maxRetries int, newLogger logger.Interface) (*
 	var db *gorm.DB
 	var err error
 
-	for i := 0; i < maxRetries; i++ {
+	for i := range maxRetries {
 		log.Printf("🔄 Intentando conexión a la base de datos (%d/%d)...", i+1, maxRetries)
 		db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
 			Logger: newLogger,
 		})
+
+		if err != nil {
+			continue
+		}
+
+		sqlDB, err := db.DB()
+
+		if err != nil {
+			continue
+		}
+
+		err = sqlDB.Ping()
 		if err == nil {
-			// Verificamos que realmente responde al ping
-			sqlDB, err := db.DB()
-			if err == nil {
-				err = sqlDB.Ping()
-				if err == nil {
-					return db, nil
-				}
-			}
+			return db, nil
 		}
 
 		log.Printf("❌ Fallo en conexión: %v", err)

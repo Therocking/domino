@@ -3,7 +3,7 @@ BIN_DIR=./bin
 
 all: build
 
-run: dev
+dev:
 	go run ./cmd/main.go
 
 build:
