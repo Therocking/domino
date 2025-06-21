@@ -20,7 +20,7 @@ env:
   GITHUB_REGISTRY: ghcr.io
   DOCKER_REGISTRY: docker.io
   # github.repository as <account>/<repo>
-  IMAGE_NAME: ${{DOCKER_REGISTRY}}/therocking/domino
+  IMAGE_NAME: therocking/domino
 
 
 jobs:
